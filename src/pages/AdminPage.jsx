@@ -2,28 +2,57 @@ import { useState } from "react";
 import "../index.css";
 
 export default function AdminDashboard() {
-  // CREATE States
-  const [trackingId, setTrackingId] = useState("");
-  const [status, setStatus] = useState("In Transit");
-  const [currentLocation, setCurrentLocation] = useState("");
-  const [expectedDelivery, setExpectedDelivery] = useState("");
 
-  // TIMELINE fields for CREATE
-  const [timelineMessage, setTimelineMessage] = useState("");
-  const [timelineLocation, setTimelineLocation] = useState("");
+  // ============================================================
+  // CREATE STATES
+  // ============================================================
+  const [createData, setCreateData] = useState({
+    trackingId: "",
+    status: "In Transit",
+    currentLocation: "",
+    expectedDelivery: "",
+    timelineMessage: "",
+    timelineLocation: "",
+  });
 
-  // UPDATE States
-  const [updateTrackingId, setUpdateTrackingId] = useState("");
-  const [updateStatus, setUpdateStatus] = useState("");
-  const [updateLocation, setUpdateLocation] = useState("");
-  const [updateMessage, setUpdateMessage] = useState("");
+  // ============================================================
+  // UPDATE STATES
+  // ============================================================
+  const [updateData, setUpdateData] = useState({
+    trackingId: "",
+    status: "",
+    currentLocation: "",
+    expectedDelivery: "",
+    timelineMessage: "",
+    timelineLocation: "",
+    timelineStatus: "",
+    timelineDate: "",
+  });
 
-  const API_URL = import.meta.env.VITE_API_URL;
+  // ============================================================
+  // HANDLE INPUT CHANGE
+  // ============================================================
+  const handleCreateChange = (e) => {
+    setCreateData({ ...createData, [e.target.name]: e.target.value });
+  };
 
-  // -----------------------------------------------------------
+  const handleUpdateChange = (e) => {
+    setUpdateData({ ...updateData, [e.target.name]: e.target.value });
+  };
+
+  // ============================================================
   // CREATE TRACKING
-  // -----------------------------------------------------------
+  // ============================================================
   const createTracking = async () => {
+    const {
+      trackingId,
+      status,
+      currentLocation,
+      expectedDelivery,
+      timelineMessage,
+      timelineLocation,
+    } = createData;
+
     if (
       !trackingId ||
       !status ||
@@ -32,7 +61,7 @@ export default function AdminDashboard() {
       !timelineMessage ||
       !timelineLocation
     ) {
-      return alert("Please fill all fields");
+      return alert("Please fill all create fields");
     }
 
     const now = new Date();
@@ -47,8 +76,8 @@ export default function AdminDashboard() {
         {
           message: timelineMessage,
           location: timelineLocation,
+          status,
           date: now.toISOString().split("T")[0],
-          time: now.toISOString().split("T")[1],
         },
       ],
     };
@@ -61,8 +90,17 @@ export default function AdminDashboard() {
       });
 
       const data = await res.json();
+
       if (data.success || data.trackingId) {
         alert("Tracking Created Successfully!");
+        setCreateData({
+          trackingId: "",
+          status: "In Transit",
+          currentLocation: "",
+          expectedDelivery: "",
+          timelineMessage: "",
+          timelineLocation: "",
+        });
       } else {
         alert("Failed Creating Tracking");
       }
@@ -71,97 +109,199 @@ export default function AdminDashboard() {
     }
   };
 
-  // -----------------------------------------------------------
+  // ============================================================
   // UPDATE TRACKING
-  // -----------------------------------------------------------
-  const updateTracking = async () => {
-    if (!updateTrackingId || !updateStatus || !updateLocation || !updateMessage) {
-      return alert("Please fill all update fields");
-    }
+  // ============================================================
+ // ============================================================
+// ADD NEW TIMELINE ENTRY ONLY
+// ============================================================
+const updateTracking = async () => {
+  const {
+    trackingId,
+    timelineMessage,
+    timelineLocation,
+    timelineStatus,
+    timelineDate,
+  } = updateData;
 
-    const now = new Date();
+  if (
+    !trackingId ||
+    !timelineMessage ||
+    !timelineLocation ||
+    !timelineStatus ||
+    !timelineDate
+  ) {
+    return alert("Please fill all timeline fields");
+  }
 
-    const timelineEntry = {
-      message: updateMessage,
-      location: updateLocation,
-      date: now.toISOString().split("T")[0],
-      time: now.toISOString().split("T")[1],
-    };
+  const payload = {
+    $push: {
+      timeline: {
+        message: timelineMessage,
+        location: timelineLocation,
+        status: timelineStatus,
+        date: timelineDate,
+      },
+    },
+  };
 
-    const payload = {
-      status: updateStatus,
-      currentLocation: updateLocation,
-      lastUpdated: now.toISOString(),
-      $push: { timeline: timelineEntry },
-    };
-
-    try {
-      await fetch(`https://swiftexpress.onrender.com/api/tracking/update/${updateTrackingId}`, {
+  try {
+    const res = await fetch(
+      `https://swiftexpress.onrender.com/api/tracking/update/${trackingId}`,
+      {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
+      }
+    );
+
+    const data = await res.json();
+
+    if (res.ok) {
+      alert("New Timeline Entry Added Successfully!");
+
+      setUpdateData({
+        trackingId: "",
+        status: "",
+        currentLocation: "",
+        expectedDelivery: "",
+        timelineMessage: "",
+        timelineLocation: "",
+        timelineStatus: "",
+        timelineDate: "",
       });
-
-      alert("Tracking Updated Successfully!");
-    } catch (err) {
-      alert("Failed Updating");
+    } else {
+      alert(data.message || "Failed Adding Timeline");
     }
-  };
+  } catch (err) {
+    alert("Server Error");
+  }
+};
 
+  // ============================================================
+  // UI
+  // ============================================================
   return (
     <div className="admin">
       <h2>Admin Dashboard</h2>
 
-      {/* CREATE SECTION */}
-      <h3>Create Tracking Entry</h3>
+      {/* ================= CREATE ================= */}
+      <section>
+        <h3>Create Tracking Entry</h3>
 
-      <input placeholder="Tracking ID" onChange={(e) => setTrackingId(e.target.value)} />
-      <input
-        placeholder="Status (e.g. In Transit)"
-        onChange={(e) => setStatus(e.target.value)}
-        defaultValue="In Transit"
-      />
-      <input
-        placeholder="Current Location"
-        onChange={(e) => setCurrentLocation(e.target.value)}
-      />
-      <input type="date" onChange={(e) => setExpectedDelivery(e.target.value)} />
+        <input
+          name="trackingId"
+          placeholder="Tracking ID"
+          value={createData.trackingId}
+          onChange={handleCreateChange}
+        />
 
-      <h4>Add First Timeline Entry</h4>
-      <input
-        placeholder="Timeline Message"
-        onChange={(e) => setTimelineMessage(e.target.value)}
-      />
-      <input
-        placeholder="Timeline Location"
-        onChange={(e) => setTimelineLocation(e.target.value)}
-      />
+        <input
+          name="status"
+          placeholder="Status"
+          value={createData.status}
+          onChange={handleCreateChange}
+        />
 
-      <button onClick={createTracking}>Create Tracking</button>
+        <input
+          name="currentLocation"
+          placeholder="Current Location"
+          value={createData.currentLocation}
+          onChange={handleCreateChange}
+        />
+
+        <input
+          type="date"
+          name="expectedDelivery"
+          value={createData.expectedDelivery}
+          onChange={handleCreateChange}
+        />
+
+        <h4>First Timeline Entry</h4>
+
+        <input
+          name="timelineMessage"
+          placeholder="Timeline Message"
+          value={createData.timelineMessage}
+          onChange={handleCreateChange}
+        />
+
+        <input
+          name="timelineLocation"
+          placeholder="Timeline Location"
+          value={createData.timelineLocation}
+          onChange={handleCreateChange}
+        />
+
+        <button onClick={createTracking}>Create Tracking</button>
+      </section>
 
       <hr />
 
-      {/* UPDATE SECTION */}
-      <h3>Update Existing Tracking</h3>
+      {/* ================= UPDATE ================= */}
+      <section>
+        <h3>Update Tracking</h3>
 
-      <input
-        placeholder="Tracking ID"
-        onChange={(e) => setUpdateTrackingId(e.target.value)}
-      />
-      <input
-        placeholder="Update Status"
-        onChange={(e) => setUpdateStatus(e.target.value)}
-      />
-      <input
-        placeholder="New Location"
-        onChange={(e) => setUpdateLocation(e.target.value)}
-      />
-      <input
-        placeholder="Timeline Message"
-        onChange={(e) => setUpdateMessage(e.target.value)}
-      />
+        <input
+          name="trackingId"
+          placeholder="Tracking ID"
+          value={updateData.trackingId}
+          onChange={handleUpdateChange}
+        />
 
-      <button onClick={updateTracking}>Update Tracking</button>
+        <input
+          name="status"
+          placeholder="Status"
+          value={updateData.status}
+          onChange={handleUpdateChange}
+        />
+
+        <input
+          name="currentLocation"
+          placeholder="Current Location"
+          value={updateData.currentLocation}
+          onChange={handleUpdateChange}
+        />
+
+        <input
+          type="date"
+          name="expectedDelivery"
+          value={updateData.expectedDelivery}
+          onChange={handleUpdateChange}
+        />
+
+        <h4>Add Timeline Entry</h4>
+
+        <input
+          name="timelineMessage"
+          placeholder="Timeline Message"
+          value={updateData.timelineMessage}
+          onChange={handleUpdateChange}
+        />
+
+        <input
+          name="timelineLocation"
+          placeholder="Timeline Location"
+          value={updateData.timelineLocation}
+          onChange={handleUpdateChange}
+        />
+
+        <input
+          name="timelineStatus"
+          placeholder="Timeline Status"
+          value={updateData.timelineStatus}
+          onChange={handleUpdateChange}
+        />
+
+        <input
+          type="date"
+          name="timelineDate"
+          value={updateData.timelineDate}
+          onChange={handleUpdateChange}
+        />
+
+        <button onClick={updateTracking}>Update Tracking</button>
+      </section>
     </div>
   );
 }

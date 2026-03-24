@@ -38,7 +38,7 @@ export default function Home() {
               value={id}
               onChange={(e) => setId(e.target.value)}
             />
-            <button onClick={() => navigate(`/track/${id}`)}>
+            <button onClick={() => navigate(`/track`)}>
               Track Package
             </button>
           </div>
