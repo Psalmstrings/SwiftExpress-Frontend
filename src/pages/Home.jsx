@@ -6,24 +6,23 @@ export default function Home() {
   const [id, setId] = useState("");
   const navigate = useNavigate();
 
+  const handleTrack = () => {
+    if (!id.trim()) return; // prevent empty navigation
+    navigate(`/track/${id}`);
+  };
+
   return (
     <div className="home-container">
       {/* NAVBAR */}
       <nav className="nav">
         <div className="logo">SwiftExpress</div>
-        {/* <ul>
-          <li>Home</li>
-          <li>Services</li>
-          <li>Track</li>
-          <li>Contact</li>
-        </ul> */}
       </nav>
 
       {/* HERO SECTION */}
       <header className="hero">
         <div className="hero-content">
           <h1>
-            Fast, Secure & Reliable  
+            Fast, Secure & Reliable 
             <span> Delivery Service</span>
           </h1>
           <p>
@@ -38,13 +37,11 @@ export default function Home() {
               value={id}
               onChange={(e) => setId(e.target.value)}
             />
-            <button onClick={() => navigate(`/track`)}>
+            <button onClick={handleTrack}>
               Track Package
             </button>
           </div>
         </div>
-
-        {/* <div className="hero-img"></div> */}
       </header>
 
       {/* FEATURES */}
