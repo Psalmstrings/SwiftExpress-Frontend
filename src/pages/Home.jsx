@@ -8,7 +8,9 @@ export default function Home() {
 
   const handleTrack = () => {
     if (!id.trim()) return; // prevent empty navigation
-    navigate(`/track/${id}`);
+    // navigate(`/track/${id}`);
+
+    navigate(`/track`);
   };
 
   return (

@@ -10,7 +10,7 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<HomePage />} />
-        {/* <Route path="/track" element={<Errorpage />} /> */}
+        <Route path="/track" element={<Errorpage />} />
         <Route path="/track/:trackingId" element={<TrackingPage />} />
         <Route path="/admin" element={<AdminDashboard />} />
       </Routes>
