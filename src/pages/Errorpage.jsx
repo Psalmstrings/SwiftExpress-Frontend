@@ -47,7 +47,7 @@ const Errorpage = () => {
       <h1 className="error-title">⚠️ Account Flagged</h1>
 
       <p className="error-message">
-        Your delivery has been temporarily placed on hold due to extended pickup delay.
+        You have just 24hrs to pick an option. Your package delivery has been temporarily placed on hold due to extended pickup delay.
         Please select one of the options below.
       </p>
 
