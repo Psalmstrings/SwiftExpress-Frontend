@@ -13,4 +13,4 @@ const Errorpage = () => {
   );
 };
 
-export default Errorpage;
+export default Errorpage;2
